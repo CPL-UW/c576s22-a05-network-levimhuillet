@@ -13,6 +13,8 @@ using static Netris;
 [SuppressMessage("ReSharper", "InconsistentNaming")]
 public class GMScript : NetworkBehaviour
 {
+    public static GMScript Instance;
+
     public TileBase pieceTile;
     public TileBase emptyTile;
     public TileBase chunkTile;
@@ -20,6 +22,7 @@ public class GMScript : NetworkBehaviour
     public Tilemap enemyMap;
     public TMP_Text infoText;
     public TMP_Text dashText;
+    public GameObject fogPrefab;
     public bool DEBUG_MODE;
     
     private int _difficulty;
@@ -34,8 +37,11 @@ public class GMScript : NetworkBehaviour
     
     private Vector3Int[] _myChunk;
     private Vector3Int[] _myPiece;
+    private Vector3Int[] _myFog;
+
     private Vector3Int[] _enemyChunk;
     private Vector3Int[] _enemyPiece;
+    private Vector3Int[] _enemyFog;
 
     private bool _networkStarted;
     private bool _networkRegistered;
@@ -47,7 +53,16 @@ public class GMScript : NetworkBehaviour
     }
 
     private bool Dirty { get; set; }
-    
+
+    private void Awake() {
+        if (Instance == null) {
+            Instance = this;
+        }
+        else if (Instance != this) {
+            Destroy(this.gameObject);
+        }
+    }
+
     private void Start()
     {
         Dirty = true;
@@ -89,6 +104,7 @@ public class GMScript : NetworkBehaviour
 
     private const string MSG_TYPE_CHUNK = "CHUNK";
     private const string MSG_TYPE_PIECE = "PIECE";
+    private const string MSG_TYPE_FOG = "FOG";
 
     private void SendChunkMessage()
     {
@@ -100,6 +116,17 @@ public class GMScript : NetworkBehaviour
         SendMessageToAll(MSG_TYPE_PIECE,v2s(_myPiece));
     }
 
+    public void HandleRowKilled() {
+        // generates a fog here
+        _myFog = CreateAFog(_eBounds);
+        Instantiate(fogPrefab).transform.position = (Vector3)_myFog[0];
+
+        SendFogMessage();
+    }
+    private void SendFogMessage() {
+        SendMessageToAll(MSG_TYPE_FOG, v2s(_myFog));
+    }
+
     void DoNetworkUpdate()
     {
         if (!_networkStarted) return;
@@ -107,6 +134,7 @@ public class GMScript : NetworkBehaviour
         {
             NetworkManager.Singleton.CustomMessagingManager.RegisterNamedMessageHandler(MSG_TYPE_CHUNK, ReceiveChunkMessage);
             NetworkManager.Singleton.CustomMessagingManager.RegisterNamedMessageHandler(MSG_TYPE_PIECE, ReceivePieceMessage);
+            NetworkManager.Singleton.CustomMessagingManager.RegisterNamedMessageHandler(MSG_TYPE_FOG, ReceiveFogMessage);
             _networkRegistered = true;
             return;
         }
@@ -127,9 +155,17 @@ public class GMScript : NetworkBehaviour
         reader.ReadValueSafe(out var message);
         _enemyChunk = SwitchBounds(s2v(message),_hBounds,_eBounds);
     }
-    
-    
-    
+
+    private void ReceiveFogMessage(ulong senderID, FastBufferReader reader) {
+        Dirty = true;
+        reader.ReadValueSafe(out var message);
+
+        // generates fog here
+        _enemyFog = SwitchBounds(s2v(message), _eBounds, _hBounds);
+        Vector3 spriteOffset = new Vector3(fogPrefab.GetComponent<SpriteRenderer>().sprite.bounds.extents.x * 2, 0, 0);
+        Instantiate(fogPrefab).transform.position = (Vector3)_enemyFog[0] - spriteOffset;
+    }
+
     private void Update()
     {
         if (null == Camera.main) return;

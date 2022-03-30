@@ -648,6 +648,7 @@ MonoBehaviour:
   enemyMap: {fileID: 1220258179}
   infoText: {fileID: 321624255}
   dashText: {fileID: 31921169}
+  fogPrefab: {fileID: 4513825242069205886, guid: 39edc24d80aed6b49b1231fc73e63b81, type: 3}
   DEBUG_MODE: 0
 --- !u!114 &650171292
 MonoBehaviour:

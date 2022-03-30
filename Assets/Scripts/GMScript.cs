@@ -116,6 +116,7 @@ public class GMScript : NetworkBehaviour
         SendMessageToAll(MSG_TYPE_PIECE,v2s(_myPiece));
     }
 
+    // Netris Change ---------------------
     public void HandleRowKilled() {
         // generates a fog here
         _myFog = CreateAFog(_eBounds);
@@ -126,6 +127,8 @@ public class GMScript : NetworkBehaviour
     private void SendFogMessage() {
         SendMessageToAll(MSG_TYPE_FOG, v2s(_myFog));
     }
+
+    //  --------------------- End Netris Change
 
     void DoNetworkUpdate()
     {
@@ -156,6 +159,7 @@ public class GMScript : NetworkBehaviour
         _enemyChunk = SwitchBounds(s2v(message),_hBounds,_eBounds);
     }
 
+    // Netris Change ---------------------
     private void ReceiveFogMessage(ulong senderID, FastBufferReader reader) {
         Dirty = true;
         reader.ReadValueSafe(out var message);
@@ -165,6 +169,8 @@ public class GMScript : NetworkBehaviour
         Vector3 spriteOffset = new Vector3(fogPrefab.GetComponent<SpriteRenderer>().sprite.bounds.extents.x * 2, 0, 0);
         Instantiate(fogPrefab).transform.position = (Vector3)_enemyFog[0] - spriteOffset;
     }
+
+    // --------------------- End Netris Change
 
     private void Update()
     {

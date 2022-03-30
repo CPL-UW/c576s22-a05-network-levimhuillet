@@ -93,6 +93,8 @@ public static class Netris
         return newPiece;
     }
 
+    // Netris Change ---------------------
+
     public static Vector3Int[] CreateAFog(RectInt bounds) {
         int xPos = Random.Range(bounds.xMin, bounds.xMax + 3);
         int yPos = Random.Range(bounds.yMin, bounds.yMin - 5);
@@ -100,6 +102,8 @@ public static class Netris
 
         return fogPos;
     }
+
+    // --------------------- End Netris Change
 
     public static (Vector3Int[],Vector3Int[]) ShiftPiece(int dx, int dy, RectInt bounds, Vector3Int[] piece, Vector3Int[] chunk)
     {
@@ -183,7 +187,11 @@ public static class Netris
                 newChunk = newChunk.Concat(movedPieces).ToArray();
             }
 
+        // Netris Change ---------------------
+
         GMScript.Instance.HandleRowKilled();
+
+        // --------------------- End Netris Change
 
         return newChunk;
     }
